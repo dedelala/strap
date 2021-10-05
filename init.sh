@@ -26,19 +26,24 @@ if [[ $confirm != "y" ]]; then
         exit 1
 fi
 
+die() {
+        printf "oh noes! init failed at %s\n" $*
+        exit 1
+}
+
 rm -rf .git
-git init --initial-branch=main
-git remote add origin "$git_url"
+git init --initial-branch=main                              || die "git init"
+git remote add origin "$git_url"                            || die "git add origin"
 
-go mod edit -module "$module"
+go mod edit -module "$module"                               || die "go mod edit"
 
-sed -i"" -e "s/strap/$project/g" .gitignore index.html
+sed -i"" -e "s/strap/$project/g" .gitignore index.html      || die "s/strap/$project/"
 
 cat > README.md <<< "# $project"
 
-git add .gitignore README.md go.mod *.go index.html static/
-git commit -m "initialized from github.com/dedelala/strap"
-git push -u origin main
+git add .gitignore README.md go.mod *.go index.html static/ || die "git add files"
+git commit -m "initialized from github.com/dedelala/strap"  || die "initial commit"
+git push -u origin main                                     || die "git push"
 
 printf "%s successfully initialized\n" "$module"
 rm "$0"
