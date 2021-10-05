@@ -54,41 +54,6 @@ func (s *Server) handleGet(rw http.ResponseWriter, req *http.Request) {
 	http.ServeContent(rw, req, "", time.Now(), br)
 }
 
-type Logger struct {
-	http.Handler
-}
-
-func NewLogger(handler http.Handler) *Logger {
-	return &Logger{handler}
-}
-
-func (l *Logger) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	lrw := &logResponseWriter{
-		ResponseWriter: rw,
-		status:         http.StatusOK,
-	}
-	l.Handler.ServeHTTP(lrw, req)
-	log.Printf("%s %s %s %d %d %s", req.RemoteAddr, req.Method, req.URL.Path,
-		lrw.status, lrw.length, lrw.Header().Get("Content-Type"))
-}
-
-type logResponseWriter struct {
-	http.ResponseWriter
-	status int
-	length int64
-}
-
-func (rw *logResponseWriter) Write(b []byte) (int, error) {
-	n, err := rw.ResponseWriter.Write(b)
-	rw.length += int64(n)
-	return n, err
-}
-
-func (rw *logResponseWriter) WriteHeader(statusCode int) {
-	rw.status = statusCode
-	rw.ResponseWriter.WriteHeader(statusCode)
-}
-
 //go:embed index.html
 var embedIndexHTML string
 
